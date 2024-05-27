@@ -17,7 +17,7 @@ const isMobile = useIsMobile()
 
 const state_jwt = useStorage('jwt')
 const prompt = ref("");
-const result = useStorage("result", "");
+const results = ref([]);  // 使用一个数组来存储所有结果
 const tmp_result = ref("");
 const prompt_type = useStorage("prompt_type", "tarot");
 const menu_type = useStorage("menu_type", "divination");
@@ -37,16 +37,19 @@ const sexOptions = [
 const plum_flower = useStorage("plum_flower", { num1: 0, num2: 0 })
 const fate_body = useStorage("fate_body", { name1: "", name2: "" })
 
+console.log("Script loaded");  // 确保脚本加载成功
+
 const onSubmit = async () => {
+  console.log("Submit clicked");  // 确保点击事件触发
   try {
     loading.value = true;
+    console.log("Loading set to true"); // 确保按钮加载状态正确设置
     tmp_result.value = "";
-    result.value = "";
     showDrawer.value = true;
     await fetchEventSource(`${API_BASE}/api/divination`, {
       method: "POST",
       body: JSON.stringify({
-        prompt: prompt.value || "我的财务状况如何",
+        prompt: prompt.value || "为我预测今日运势",
         prompt_type: prompt_type.value,
         birthday: birthday.value,
         new_name: {
@@ -78,23 +81,31 @@ const onSubmit = async () => {
         }
         try {
           tmp_result.value += JSON.parse(msg.data);
-          result.value = md.render(tmp_result.value);
         } catch (error) {
-          console.error(error);
+          console.error("Error parsing message data:", error);
         }
       },
       onclose() {
-
+        try {
+          const final_result = md.render(tmp_result.value);
+          results.value.push(final_result);
+          console.log("final_result:", final_result);
+        } catch (error) {
+          console.error("Error rendering final result:", error);
+          results.value.push("占卜结果解析失败");
+        }
+        console.log("Connection closed");
+        loading.value = false;
       },
       onerror(err) {
-        result.value = `占卜失败: ${err.message}`;
-        throw new Error(`占卜失败: ${err.message}`);
+        console.log("Error occurred:", err.message);
+        results.value.push(`占卜失败: ${err.message}`);
+        loading.value = false;
       }
     });
   } catch (error) {
-    console.error(error);
-    result.value = error.message || "占卜失败";
-  } finally {
+    console.error("Catch block error:", error);
+    results.value.push(error.message || "占卜失败");
     loading.value = false;
   }
 };
@@ -132,109 +143,31 @@ onMounted(async () => {
 });
 </script>
 
+
 <template>
   <div>
     <n-tabs v-model:value="prompt_type" type="card" animated placement="top">
-      <template v-if="isMobile" #prefix>
-        <n-button @click="changeTab(-1)">←</n-button>
-      </template>
-      <template v-if="isMobile" #suffix>
-        <n-button @click="changeTab(1)">→</n-button>
-      </template>
-      <n-tab-pane v-for="option in DIVINATION_OPTIONS" :name="option.key" :tab="option.label">
-        <n-card v-if="prompt_type != 'about'">
-          <div v-if="prompt_type == 'tarot'">
+      <n-tab-pane v-for="option in DIVINATION_OPTIONS" :key="option.key" :name="option.key" :tab="option.label">
+        <n-card>
+          <!-- 结果显示区域 -->
+          <div class="result-container">
+            <h3>占卜结果</h3>
+            <div v-for="(result, index) in results" :key="index" v-html="result" class="result"></div>
+          </div>
+          <!-- 输入和操作区域 -->
+          <div class="input-container" style="display: flex; align-items: center;">
             <n-input v-model:value="prompt" type="textarea" round maxlength="40" :autosize="{ minRows: 3 }"
-              placeholder="我的财务状况如何" />
-          </div>
-          <div v-if="prompt_type == 'birthday'">
-            <div style="display: inline-block; text-align: left;">
-              <n-form-item label="生日" label-placement="left">
-                <n-date-picker v-model:formatted-value="birthday" value-format="yyyy-MM-dd HH:mm:ss" type="datetime" />
-              </n-form-item>
-              <n-form-item label="农历" label-placement="left">
-                <p>{{ lunarBirthday }}</p>
-              </n-form-item>
-            </div>
-          </div>
-          <div v-if="prompt_type == 'new_name'">
-            <div style="display: inline-block;">
-              <n-form-item label="姓氏" label-placement="left">
-                <n-input v-model:value="surname" type="text" maxlength="2" placeholder="请输入姓氏" />
-              </n-form-item>
-              <n-form-item label="性别" label-placement="left">
-                <n-select v-model:value="sex" :options="sexOptions" />
-              </n-form-item>
-              <n-form-item label="生日" label-placement="left">
-                <n-date-picker v-model:formatted-value="birthday" value-format="yyyy-MM-dd HH:mm:ss" type="datetime" />
-              </n-form-item>
-              <n-form-item label="附加" label-placement="left">
-                <n-input v-model:value="new_name_prompt" type="text" maxlength="20" placeholder="" />
-              </n-form-item>
-              <p>农历: {{ lunarBirthday }}</p>
-            </div>
-          </div>
-          <div v-if="prompt_type == 'name'">
-            <div style="display: inline-block;">
-              <n-input v-model:value="prompt" type="text" maxlength="10" round placeholder="请输入姓名" />
-            </div>
-          </div>
-          <div v-if="prompt_type == 'dream'">
-            <n-input v-model:value="prompt" type="textarea" round maxlength="40" :autosize="{ minRows: 3 }"
-              placeholder="请输入你的梦境" />
-          </div>
-          <div v-if="prompt_type == 'plum_flower'">
-            <div style="display: inline-block;">
-              <h4>请随机输入两个 0-1000 的数字</h4>
-              <n-form-item label="数字一" label-placement="left">
-                <n-input-number v-model:value="plum_flower.num1" :min="0" :max="1000" />
-              </n-form-item>
-              <n-form-item label="数字二" label-placement="left">
-                <n-input-number v-model:value="plum_flower.num2" :min="0" :max="1000" />
-              </n-form-item>
-            </div>
-          </div>
-          <div v-if="prompt_type == 'fate'">
-            <div style="display: inline-block;">
-              <h4>缘分是天定的，幸福是自己的。</h4>
-              <p>想知道你和 ta 有没有缘分呢，编辑“姓名1” “姓名2”，然后点击“一键预测”。</p>
-              <p>如郭靖 黄蓉，然后点击一键预测。 就能查看你和 ta 的缘分了。</p>
-              <n-form-item label="姓名1" label-placement="left">
-                <n-input v-model:value="fate_body.name1" round maxlength="40" />
-              </n-form-item>
-              <n-form-item label="姓名2" label-placement="left">
-                <n-input v-model:value="fate_body.name2" round maxlength="40" />
-              </n-form-item>
-              <div class="footer" style="text-align:center">
-                <p>
-                  <a href="https://github.com/alongLFB/alonglfb.github.io/blob/master/images/wechatpay.png"
-                    style="text-decoration: underline;" target="_blank">请作者喝杯咖啡</a> - 🤗 Along Li
-                </p>
-              </div>
-            </div>
-          </div>
-          <div v-if="menu_type != 'about'" class="button-container">
-            <n-button class="button" @click="showDrawer = !showDrawer" tertiary type="primary">
-              {{ loading ? "点击打开占卜结果页面" : "查看占卜结果" }}
-            </n-button>
+              placeholder="请输入您的问题" style="flex-grow: 1; margin-right: 8px;" />
             <n-button class="button" @click="onSubmit" type="primary" :disabled="loading">
-              {{ loading ? "正在占卜中..." : "占卜" }}
+              {{ loading ? "正在发送..." : "发送" }}
             </n-button>
           </div>
         </n-card>
       </n-tab-pane>
-      <n-tab-pane name="about" tab="关于">
-        <About />
-      </n-tab-pane>
     </n-tabs>
-    <n-drawer v-model:show="showDrawer" style="height: 80vh;" placement="bottom" :trap-focus="false"
-      :block-scroll="false">
-      <n-drawer-content title="占卜结果" closable>
-        <div class="result" v-html="result"></div>
-      </n-drawer-content>
-    </n-drawer>
   </div>
 </template>
+
 
 <style scoped>
 .button-container {
@@ -244,6 +177,11 @@ onMounted(async () => {
 
 .button {
   margin: 10px;
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
 }
 
 .result {
