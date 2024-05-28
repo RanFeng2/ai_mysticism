@@ -2,30 +2,37 @@ export const DIVINATION_OPTIONS = [
     {
         label: '塔罗牌',
         key: 'tarot',
+        welcome_messages: "欢迎来到塔罗牌的神秘世界。请告诉我您想要进行占卜的问题，我将为您进行详细而准确的解读。在进行占卜之前，请静心思考您的问题，并将其告诉我。",
     },
     {
         label: '姻缘',
         key: 'fate',
+        welcome_messages: "欢迎来到缘分占卜。在这里，您可以查看您与另一人的缘分。请输入两个人的姓名。",
     },
     {
         label: '生辰八字',
         key: 'birthday',
+        welcome_messages: "欢迎来到生日占卜。在这里，您可以使用您的生日来揭示您的命运和未来。请告诉我您的生日信息。",
     },
     {
         label: '起名',
         key: 'new_name',
+        welcome_messages: "欢迎来到新名字占卜。在这里，您可以测试一个新名字的影响力。请输入您的新名字和相关信息。",
     },
     {
         label: '姓名五格',
         key: 'name',
+        welcome_messages: "欢迎来到名字占卜。在这里，您可以通过您的名字来了解您的命运和特征。请告诉我您的名字。",
     },
     {
         label: '周公解梦',
         key: 'dream',
+        welcome_messages: "欢迎来到梦境占卜。在这里，您可以解读您的梦境。请描述您的梦境内容。",
     },
     {
         label: '梅花易数',
         key: 'plum_flower',
+        welcome_messages: "欢迎来到梅花易数占卜。在这里，您可以通过数字来揭示您的命运。请输入两个0到1000的数字。",
     },
 ];
 

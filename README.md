@@ -56,6 +56,7 @@ ad_slot=123
 RUN
 
 ```bash
+# 后端服务器
 cd frontend
 # pnpm install
 pnpm build --emptyOutDir
@@ -67,6 +68,11 @@ cp -r frontend/dist/ dist
 # pip install -r requirements.txt
 python main.py
 
+```
+
+```bash
+# 前端
+npm run dev
 ```
 
 ## Reference
