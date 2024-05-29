@@ -51,7 +51,7 @@ const onSubmit = async () => {
     await fetchEventSource(`${API_BASE}/api/divination`, {
       method: "POST",
       body: JSON.stringify({
-        prompt: userPrompt || "为我预测今日运势",
+        prompt: userPrompt || "如上",
         prompt_type: prompt_type.value,
         birthday: birthday.value,
         new_name: {
@@ -141,11 +141,45 @@ const computeLunarBirthday = (newBirthday) => {
   }
 }
 
-watch(birthday, async (newBirthday, oldBirthday) => {
+const updateBirthdayPrompt = (newBirthday) => {
+  prompt.value = `我的生日是：${newBirthday}`;
+};
+
+const updateNewNamePrompt = (newSurname, newSex, newBirthday, newNamePrompt) => {
+  prompt.value = `宝宝的姓氏是：${newSurname}， 宝宝的性别是：${newSex}， 宝宝的生日是：${newBirthday}， 附加信息：${newNamePrompt}`;
+};
+
+const updatePlumFlowerPrompt = (newNum1, newNum2) => {
+  prompt.value = `我选择的数字1是：${newNum1}， 数字2是：${newNum2}`;
+};
+
+
+watch([prompt_type, birthday, surname, sex, new_name_prompt, plum_flower], ([newPromptType, newBirthday, newSurname, newSex, newNamePrompt, newPlumFlower], [oldPromptType, oldBirthday, oldSurname, oldSex, oldNamePrompt, oldPlumFlower]) => {
   computeLunarBirthday(newBirthday)
-})
+  if (newPromptType == 'birthday'){
+    if (newBirthday !== oldBirthday) {
+      updateBirthdayPrompt(newBirthday)
+    }
+  }
+
+  if (newPromptType == 'new_name'){
+    if (newSurname !== oldSurname || newSex !== oldSex || newBirthday !== oldBirthday || newNamePrompt !== oldNamePrompt) {
+      updateNewNamePrompt(newSurname, newSex, newBirthday, newNamePrompt)
+    }
+  }
+
+  if (newPromptType == 'plum_flower'){
+    console.log('Checking Plum Flower:', newPlumFlower, oldPlumFlower);
+    updatePlumFlowerPrompt(newPlumFlower.num1, newPlumFlower.num2)
+  }
+
+}, { deep: true })
+
+
 
 const changeTab = async (delta) => {
+  // 清空prompt
+  prompt.value = "";
   // 清空对话记录
   conversations.value = [];
   // 更新当前的Index
@@ -217,9 +251,9 @@ onMounted(async () => {
                 </div>
               </div>
             </div>
-            <!-- 姓名占卜输入区域 -->
-          <div v-if="prompt_type == 'name'">
-            <div class="conversation-item ai">
+            <!-- 测名占卜输入区域 -->
+            <div v-if="prompt_type == 'name'">
+              <div class="conversation-item ai">
                 <n-avatar round :size="large" object-fit="contain" 
                   src="tarot-200x200.jpg" />
                 <p><strong>AI占卜师</strong></p>
@@ -229,13 +263,100 @@ onMounted(async () => {
                 <div class="conversation-content ai">
                   <div v-html="option.welcome_messages"></div>
                 </div>
-                <!-- 姓名输入部分 -->
-                <!-- <div style="margin-top: 16px; display: flex; align-items: center;">
-                  <n-inpu-label>姓名</n-inpu-label>
-                  <n-input v-model:value="prompt" type="text" maxlength="10" round placeholder="请输入姓名" />
-                </div> -->
               </div>
-          </div>
+            </div>
+            <!-- 起名占卜输入区域 -->
+            <div v-if="prompt_type == 'new_name'">
+              <div class="conversation-item ai">
+                <n-avatar round :size="large" object-fit="contain" 
+                  src="tarot-200x200.jpg" />
+                <p><strong>AI占卜师</strong></p>
+              </div>
+              <div class="conversation-wrap">
+                <!-- 欢迎语 -->
+                <div class="conversation-content ai">
+                  <div v-html="option.welcome_messages"></div>
+                </div>
+              </div>
+                <!-- 起名信息输入部分 -->
+                <div class="additional-input-wrap">
+                  <n-form-item label="姓氏" label-placement="left">
+                    <n-input v-model:value="surname" type="text" maxlength="4" placeholder="请输入姓氏" />
+                  </n-form-item>
+                  <n-form-item label="性别" label-placement="left" >
+                    <n-select v-model:value="sex" :options="sexOptions" size="large" />
+                  </n-form-item>
+                  <n-form-item label="生日" label-placement="left">
+                    <n-date-picker v-model:formatted-value="birthday" value-format="yyyy-MM-dd HH:mm:ss" type="datetime" />
+                  </n-form-item>
+                  <n-form-item label="附加" label-placement="left">
+                    <n-input v-model:value="new_name_prompt" type="text" maxlength="20" placeholder="" />
+                  </n-form-item>
+                  <p>农历: {{ lunarBirthday }}</p>
+                </div>
+            </div>
+            <!-- 梦境占卜输入区域 -->
+            <div v-if="prompt_type == 'dream'">
+              <div class="conversation-item ai">
+                <n-avatar round :size="large" object-fit="contain" 
+                  src="tarot-200x200.jpg" />
+                <p><strong>AI占卜师</strong></p>
+              </div>
+              <div class="conversation-wrap">
+                <!-- 欢迎语 -->
+                <div class="conversation-content ai">
+                  <div v-html="option.welcome_messages"></div>
+                </div>
+              </div>
+            </div>
+            <!-- 梅花易数占卜输入区域 -->
+            <div v-if="prompt_type == 'plum_flower'">
+              <div class="conversation-item ai">
+                <n-avatar round :size="large" object-fit="contain" 
+                  src="tarot-200x200.jpg" />
+                <p><strong>AI占卜师</strong></p>
+              </div>
+              <div class="conversation-wrap">
+                <!-- 欢迎语 -->
+                <div class="conversation-content ai">
+                  <div v-html="option.welcome_messages"></div>
+                </div>
+              </div>
+              <!-- 数字输入区域 -->
+              <div class="additional-input-wrap">
+                <n-form-item label="数字一" label-placement="left">
+                  <n-input-number v-model:value="plum_flower.num1" :min="0" :max="1000" />
+                </n-form-item>
+                <n-form-item label="数字二" label-placement="left">
+                  <n-input-number v-model:value="plum_flower.num2" :min="0" :max="1000" />
+                </n-form-item>
+              </div>
+            </div>
+            <!-- 缘分占卜输入区域 -->
+            <div v-if="prompt_type == 'fate'">
+              <div class="conversation-item ai">
+                <n-avatar round :size="large" object-fit="contain" 
+                  src="tarot-200x200.jpg" />
+                <p><strong>AI占卜师</strong></p>
+              </div>
+              <div class="conversation-wrap">
+                <!-- 欢迎语 -->
+                <div class="conversation-content ai">
+                  <div v-html="option.welcome_messages"></div>
+                </div>
+              </div>
+              <div style="display: inline-block;">
+                <h4>缘分是天定的，幸福是自己的。</h4>
+                <p>想知道你和 ta 有没有缘分呢，编辑“姓名1” “姓名2”，然后点击“一键预测”。</p>
+                <p>如郭靖 黄蓉，然后点击一键预测。 就能查看你和 ta 的缘分了。</p>
+                <n-form-item label="姓名1" label-placement="left">
+                  <n-input v-model:value="fate_body.name1" round maxlength="40" />
+                </n-form-item>
+                <n-form-item label="姓名2" label-placement="left">
+                  <n-input v-model:value="fate_body.name2" round maxlength="40" />
+                </n-form-item>
+              </div>
+            </div>
             <!-- 对话显示区域 -->
             <div v-for="(conversation, index) in conversations" :key="index" class="conversation">
               <div class="conversation-item user">
@@ -259,7 +380,7 @@ onMounted(async () => {
           <!-- 输入和操作区域 -->
           <div class="input-container" style="display: flex; align-items: center;">
             <n-input v-model:value="prompt" type="textarea" round maxlength="40" :autosize="{ minRows: 3 }"
-              placeholder="请输入您的问题" style="flex-grow: 1; margin-right: 8px;" />
+              placeholder="请根据提示输入" style="flex-grow: 1; margin-right: 8px;" />
             <n-button class="button" @click="onSubmit" type="primary" :disabled="loading">
               {{ loading ? "正在发送..." : "发送" }}
             </n-button>

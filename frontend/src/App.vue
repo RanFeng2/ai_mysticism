@@ -45,14 +45,14 @@ const fetchSettings = async () => {
   }
 }
 
-const showAd = computed(() => !isMobile.value && settings.value.ad_client);
+const showAd = false
 
 onMounted(async () => {
   await fetchSettings();
-  if (!isMobile.value && settings.value.ad_client) {
-    (window.adsbygoogle = window.adsbygoogle || []).push({});
-    (window.adsbygoogle = window.adsbygoogle || []).push({});
-  }
+  // if (!isMobile.value && settings.value.ad_client) {
+  //   (window.adsbygoogle = window.adsbygoogle || []).push({});
+  //   (window.adsbygoogle = window.adsbygoogle || []).push({});
+  // }
 });
 </script>
 
@@ -76,10 +76,10 @@ onMounted(async () => {
                 </template>
                 <template #extra>
                   <n-space>
-                    <div v-if="settings.enable_login">
+                    <!-- <div v-if="settings.enable_login">
                       <n-button v-if="settings.user_name" @click="logOut">登出</n-button>
                       <n-button v-else type="primary" @click="router.push('/login')">登录</n-button>
-                    </div>
+                    </div> -->
                     <n-button @click="themeStorage = (themeStorage == 'dark' ? 'light' : 'dark')">
                       {{ themeStorage == 'dark' ? '亮色' : '暗色' }}
                     </n-button>
@@ -89,14 +89,14 @@ onMounted(async () => {
                     </n-button>
                   </n-space>
                 </template>
-                <template #footer>
+                <!-- <template #footer>
                   <n-alert v-if="settings.user_name" type="success">
                     你好, {{ settings.login_type }} 用户 {{ settings.user_name }}
                   </n-alert>
                   <n-alert v-else-if="settings.enable_login && settings.enable_rate_limit" type="warning">
                     当前未登录, 处于限流模式 ({{ settings.rate_limit }})
                   </n-alert>
-                </template>
+                </template> -->
               </n-page-header>
               <router-view></router-view>
             </div>
