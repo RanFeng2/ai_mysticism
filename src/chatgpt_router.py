@@ -12,8 +12,8 @@ from config import settings
 from fastapi import APIRouter
 
 from .models import DivinationBody, User
-# from src.user import get_user
-from src.user import get_current_user
+from src.user import get_user
+# from src.user import get_current_user
 from .limiter import get_real_ipaddr, check_rate_limit
 from .divination import DivinationFactory
 
@@ -31,8 +31,8 @@ STOP_WORDS = [
 async def divination(
         request: Request,
         divination_body: DivinationBody,
-        # user: Optional[User] = Depends(get_user)
-        user: Optional[User] = Depends(get_current_user)
+        user: Optional[User] = Depends(get_user)
+        # user: Optional[User] = Depends(get_current_user)
 
 ):
 

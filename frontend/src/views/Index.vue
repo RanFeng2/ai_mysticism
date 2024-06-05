@@ -5,16 +5,16 @@ import {
   NAvatar
 } from 'naive-ui'
 import { watch, ref, onMounted, onBeforeUnmount, computed} from "vue";
+import MarkdownIt from 'markdown-it';
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex';
-import MarkdownIt from 'markdown-it';
 import { fetchEventSource, EventStreamContentType } from '@microsoft/fetch-event-source';
 import { useStorage } from '@vueuse/core';
 import { Solar } from 'lunar-javascript'
-
 import { useIsMobile } from '../utils/composables'
 import About from '../components/About.vue'
 import { DIVINATION_OPTIONS } from "../config/constants";
+
 const isMobile = useIsMobile()
 const state_jwt = useStorage('jwt')
 const prompt = ref("");
@@ -26,9 +26,9 @@ const lunarBirthday = ref("");
 const birthday = useStorage("birthday", "2000-08-17 00:00:00");
 const loading = ref(false);
 
-import { VITE_API_BASE }from "../config/env.js"
-const API_BASE = import.meta.env.VITE_API_BASE || "";
-console.log("API_BASE=", API_BASE);
+
+const API_BASE = "";
+console.log("[index.vue]API_BASE",API_BASE)
 
 const md = new MarkdownIt();
 const sex = ref("")
@@ -51,6 +51,8 @@ console.log("[index.vue-beginning]isAuthenticated=", isAuthenticated)
 console.log("[index.vue]",localStorage.getItem('user'))
 
 const onSubmit = async () => {
+  if (loading.value) return;  // 防止重复提交
+  console.log("Submit clicked");  // 确保点击事件触发
   try {
     console.log("Loading set to true"); // 确保按钮加载状态正确设置
     tmp_result.value = "";
