@@ -16,7 +16,7 @@ import { useIsMobile } from '../utils/composables'
 import About from '../components/About.vue'
 import { DIVINATION_OPTIONS } from "../config/constants";
 const isMobile = useIsMobile()
-// const state_jwt = useStorage('jwt')
+const state_jwt = useStorage('jwt')
 const prompt = ref("");
 const conversations = ref([]);  // 使用一个数组来存储所有对话
 const tmp_result = ref("");
@@ -44,12 +44,14 @@ const fate_body = useStorage("fate_body", { name1: "", name2: "" })
 console.log("Script loaded");  // 确保脚本加载成功
 
 const store = useStore();
-const user = computed(() => store.state.user);  // 使用computed创建响应式的用户状态
-const isAuthenticated = computed(() => store.state.isAuthenticated)
+const user = computed(() => store.getters.user);  // 使用computed创建响应式的用户状态
+const isAuthenticated = computed(() => store.getters.isAuthenticated)
+console.log("[index.vue-beginning]user=", user)
+console.log("[index.vue-beginning]isAuthenticated=", isAuthenticated)
+console.log("[index.vue]",localStorage.getItem('user'))
 
 const onSubmit = async () => {
   try {
-    // loading.value = true;
     console.log("Loading set to true"); // 确保按钮加载状态正确设置
     tmp_result.value = "";
     const userPrompt = prompt.value;
@@ -70,6 +72,7 @@ const onSubmit = async () => {
         fate: prompt_type.value == "fate" ? fate_body.value : null
       }),
       headers: {
+        "Authorization": `Bearer ${state_jwt.value || "xxx"}`,
         "Content-Type": "application/json"
       },
       async onopen(response) {

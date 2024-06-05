@@ -9,8 +9,8 @@ _logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     api_key: str = Field(default="sk-xxx", exclude=True)
-    api_base: str = "https://api.openai.com/v1"
-    model: str = "gpt-4"
+    api_base: str = "https://api.xiaoai.plus/v1"
+    model: str = "gpt-3.5-turbo"
     enable_rate_limit: bool = True
     # rate limit xxx request per xx seconds
     rate_limit: Tuple[int, int] = (5, 60 * 60)

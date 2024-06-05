@@ -10,15 +10,14 @@ import { useStore } from 'vuex';
 
 import App from './App.vue';
 import router from './router'; 
-
 const routerLocal = useRouter()
+
 const store = useStore();
-
-
-const user = computed(() => store.state.user);  // 使用computed创建响应式的用户状态
-const isAuthenticated = computed(() => store.state.isAuthenticated)
-console.log("[app.vue]user=", user)
-console.log("[app.vue]isAuthenticated=", isAuthenticated)
+const user = computed(() => store.getters.user);  // 使用computed创建响应式的用户状态
+const isAuthenticated = computed(() => store.getters.isAuthenticated)
+console.log("[app.vue-beginning]user=", user)
+console.log("[app.vue-beginning]isAuthenticated=", isAuthenticated)
+console.log("[app.vue]",localStorage.getItem('user'))
 
 const themeStorage = useStorage('theme', 'light')
 const theme = computed(() => themeStorage.value == 'dark' ? darkTheme : null)
