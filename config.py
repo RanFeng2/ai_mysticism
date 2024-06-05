@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     model: str = "gpt-3.5-turbo"
     enable_rate_limit: bool = True
     # rate limit xxx request per xx seconds
-    rate_limit: Tuple[int, int] = (5, 60 * 60)
+    rate_limit: Tuple[int, int] = (60, 60 * 60)
     user_rate_limit: Tuple[int, int] = (600, 60 * 60)
     github_client_id: str = ""
     github_client_secret: str = Field(default="", exclude=True)

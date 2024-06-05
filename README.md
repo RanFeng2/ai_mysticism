@@ -3,14 +3,12 @@
 ## AI 算命，占卜 功能
 
 - [x] 塔罗牌
-- [x] 生辰八字
-- [x] 姓名五格
+- [ ] 塔罗牌（自己抽牌）
+- [x] 测名
+- [x] 宝宝起名
 - [x] 周公解梦
-- [x] 起名
 - [x] 梅花易数
-- [x] 姻缘 [@alongLFB](https://github.com/alongLFB)
-
-
+- [x] 测姻缘指数
 
 ## Deploy by docker
 
@@ -25,21 +23,21 @@ docker-compose up --build
 
 ## Local Run
 
-创建 `.env` 文件，填入如下内容, `api_key` 为必填项, 其余为可选项
+创建 `.env` 文件，填入如下内容, `api_key` `api_base` `database_url` 为必填项, 其余为可选项
 
 ```bash
-api_key=sk-xxxx
-api_base=https://api.openai.com/v1
+# 后端变量
+api_key=sk-VlTl0lAMBjn6emwg93D58c210cBc441a8fC03bB8D96bEd12
+api_base=https://api.xiaoai.plus/v1
 github_client_id=xxx
 github_client_secret=xxx
 ad_client=ca-pub-xxx
 ad_slot=123
+database_url = mysql+pymysql://ai-mysticism:irCCY7ZZY4zrNyz8@8.130.32.234:3306/ai-mysticism  # 云数据库连接
 ```
 
-RUN
-
 ```bash
-# 后端服务器
+# 启动后端服务器
 cd D:\ai-mysticism\frontend
 # pnpm install
 pnpm build --emptyOutDir
@@ -54,10 +52,13 @@ python main.py
 ```
 
 ```bash
-# 前端
+# 启动前端
 cd D:\ai-mysticism\frontend
 npm run dev
 ```
 
 ## Reference
-[chatgpt-tarot-divination](https://github.com/dreamhunter2333/chatgpt-tarot-divination)
+因为本人是小白，所以大部分参考了[chatgpt-tarot-divination](https://github.com/dreamhunter2333/chatgpt-tarot-divination)项目，非常感谢！
+- 修改了UI部分
+- 增加了登录模块
+- 修改了部分占卜prompt
