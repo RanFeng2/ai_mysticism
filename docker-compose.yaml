@@ -17,5 +17,6 @@ services:
       - jwt_secret=secret
       - ad_client=ca-pub-xxx
       - ad_slot=123
+      - database_url=mysql+pymysql://user:7RDj2zmhLnREyPdk@host:24148
 
 

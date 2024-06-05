@@ -1,6 +1,36 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
+from sqlalchemy import Sequence, Column, Integer, String, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+
+
+Base = declarative_base()
+class User(Base):
+    __tablename__ = 'User'
+    UserId = Column(Integer, Sequence('user_id_seq'), primary_key=True, nullable=False)
+    Username = Column(String(50), unique=True, index=True)
+    Email = Column(String(100), unique=True, index=True)
+    PasswordHash = Column(String(100))
+    CreateDate = Column(DateTime)
+
+# schemas.py
+
+class UserCreate(BaseModel):
+    user_name: str
+    Email: str
+    PasswordHash: str
+
+class UserRead(BaseModel):
+    UserId: int
+    user_name: str
+    Email: str
+
+    class Config:
+        orm_mode = True
+        from_attributes = True  # 用于 Pydantic v2
+
+
 
 class SettingsInfo(BaseModel):
     login_type: str
@@ -11,18 +41,12 @@ class SettingsInfo(BaseModel):
     ad_slot: str = ""
     enable_login: bool = False
     enable_rate_limit: bool = False
+    database_url: str
 
 
 class OauthBody(BaseModel):
     login_type: str
     code: Optional[str]
-
-
-class User(BaseModel):
-    login_type: str
-    user_name: str
-    expire_at: float
-
 
 class NewName(BaseModel):
     surname: str
@@ -57,3 +81,4 @@ class BirthdayBody(BaseModel):
 class CommonResponse(BaseModel):
     content: str
     request_id: str
+

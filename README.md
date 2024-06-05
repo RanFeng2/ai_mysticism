@@ -40,7 +40,7 @@ RUN
 
 ```bash
 # 后端服务器
-cd frontend
+cd D:\ai-mysticism\frontend
 # pnpm install
 pnpm build --emptyOutDir
 cd ..
@@ -55,6 +55,7 @@ python main.py
 
 ```bash
 # 前端
+cd D:\ai-mysticism\frontend
 npm run dev
 ```
 

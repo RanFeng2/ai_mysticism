@@ -1,143 +1,106 @@
 <script setup>
 import {
   NGrid, NGi, NSpace, NAlert, NButton, NMessageProvider, NPageHeader,
-  NConfigProvider, NGlobalStyle, NBackTop, zhCN, darkTheme, NSpin
+  NConfigProvider, NGlobalStyle, NBackTop, zhCN, darkTheme
 } from 'naive-ui'
-import { onMounted, ref, computed } from "vue";
+import { onMounted, onBeforeUnmount, ref, computed, watch, createApp } from "vue";
 import { useRouter } from 'vue-router'
 import { useStorage } from '@vueuse/core'
-import { useIsMobile } from './utils/composables'
+import { useStore } from 'vuex';
 
-const state_jwt = useStorage('jwt')
+import App from './App.vue';
+import router from './router'; 
+
+const routerLocal = useRouter()
+const store = useStore();
+
+
+const user = computed(() => store.state.user);  // 使用computed创建响应式的用户状态
+const isAuthenticated = computed(() => store.state.isAuthenticated)
+console.log("[app.vue]user=", user)
+console.log("[app.vue]isAuthenticated=", isAuthenticated)
+
 const themeStorage = useStorage('theme', 'light')
-const isMobile = useIsMobile()
 const theme = computed(() => themeStorage.value == 'dark' ? darkTheme : null)
 
-const router = useRouter()
-const settings = ref({});
-const loading = ref(false);
-
-const API_BASE = import.meta.env.VITE_API_BASE || "";
-
-const logOut = () => {
-  state_jwt.value = "";
-  router.go(0);
-};
-
-const fetchSettings = async () => {
-  loading.value = true;
-  try {
-    const response = await fetch(`${API_BASE}/api/v1/settings`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${state_jwt.value || "xxx"}`,
-        "Content-Type": "application/json"
-      },
-    });
-    if (response.ok) {
-      settings.value = await response.json();
-    }
-  } catch (error) {
-    console.error(error);
-  }
-  finally {
-    loading.value = false;
-  }
+// 跳转到登录
+function logIn() {
+  // 将用户导航到登录页面以进行身份验证
+  routerLocal.push('/login');
 }
 
-const showAd = false
+// 登出
+function logOut() {
+  isAuthenticated.value = false;
+  user.value = null;
+  store.commit(
+    'setUser', 
+     null,
+  );
+  routerLocal.push('/');
+}
 
-onMounted(async () => {
-  await fetchSettings();
-  // if (!isMobile.value && settings.value.ad_client) {
-  //   (window.adsbygoogle = window.adsbygoogle || []).push({});
-  //   (window.adsbygoogle = window.adsbygoogle || []).push({});
-  // }
-});
+// 跳转到主页
+function toHomePage(){
+  routerLocal.push('/');
+}
+
 </script>
 
 <template>
   <n-config-provider :locale="zhCN" :theme="theme">
-    <n-spin description="加载中..." :show="loading">
-      <n-global-style />
-      <n-message-provider>
-        <n-grid :x-gap="12" :cols="isMobile ? 6 : 8">
-          <n-gi :span="1">
-            <div class="side" v-if="showAd">
-              <ins class="adsbygoogle" style="display:block" :data-ad-client="settings.ad_client"
-                :data-ad-slot="settings.ad_slot" data-ad-format="auto" data-full-width-responsive="true"></ins>
-            </div>
-          </n-gi>
-          <n-gi :span="6">
-            <div class="main">
-              <n-page-header :subtitle="isMobile ? '' : '本项目仅供娱乐'">
-                <template #title>
-                  <h3>AI 神秘学</h3>
-                </template>
-                <template #extra>
-                  <n-space>
-                    <!-- <div v-if="settings.enable_login">
-                      <n-button v-if="settings.user_name" @click="logOut">登出</n-button>
-                      <n-button v-else type="primary" @click="router.push('/login')">登录</n-button>
-                    </div> -->
-                    <n-button @click="themeStorage = (themeStorage == 'dark' ? 'light' : 'dark')">
-                      {{ themeStorage == 'dark' ? '亮色' : '暗色' }}
-                    </n-button>
-                    <n-button type="primary" ghost tag="a" target="_blank"
-                      href="https://github.com/RanFeng2/ai_mysticism">
-                      ☆ Github
-                    </n-button>
-                  </n-space>
-                </template>
-                <!-- <template #footer>
-                  <n-alert v-if="settings.user_name" type="success">
-                    你好, {{ settings.login_type }} 用户 {{ settings.user_name }}
-                  </n-alert>
-                  <n-alert v-else-if="settings.enable_login && settings.enable_rate_limit" type="warning">
-                    当前未登录, 处于限流模式 ({{ settings.rate_limit }})
-                  </n-alert>
-                </template> -->
-              </n-page-header>
-              <router-view></router-view>
-            </div>
-          </n-gi>
-          <n-gi :span="1" v-if="!isMobile">
-            <div class="side" v-if="showAd">
-              <ins class="adsbygoogle" style="display:block" :data-ad-client="settings.ad_client"
-                :data-ad-slot="settings.ad_slot" data-ad-format="auto" data-full-width-responsive="true"></ins>
-            </div>
-          </n-gi>
-        </n-grid>
-      </n-message-provider>
-      <n-back-top />
-    </n-spin>
+    <n-global-style />
+    <n-message-provider>
+      <div class="container">
+        <div class="main">
+          <n-page-header :subtitle="''">
+            <template #title>
+              <h3>AI 神秘学</h3>
+            </template>
+            <template #extra>
+              <n-space>
+                <n-button type="primary" ghost tag="a" target="_blank" href="https://github.com/RanFeng2/ai_mysticism">
+                  ☆ Github
+                </n-button>
+                <n-button @click="themeStorage = (themeStorage == 'dark' ? 'light' : 'dark')">
+                  {{ themeStorage == 'dark' ? '☀亮色' : '🌙暗色' }}
+                </n-button>
+                <n-button type="primary" ghost @click="toHomePage">
+                  🏠主页
+                </n-button>
+                <n-button v-if="isAuthenticated" @click="router.push('\login')">{{ user.Username }}</n-button>
+                <n-button v-if="isAuthenticated" @click="logOut">登出</n-button>
+                <n-button v-if="!isAuthenticated" type="primary" @click="logIn">登录</n-button>
+              </n-space>
+            </template>
+            <template #footer>
+              <n-alert v-if="isAuthenticated" type="success">
+                你好, {{ user.Username }}
+              </n-alert>
+              <n-alert v-if="!isAuthenticated" type="warning">
+                当前未登录
+              </n-alert>
+            </template>
+          </n-page-header>
+          <router-view :key="$route.path"></router-view>
+        </div>
+      </div>
+    </n-message-provider>
+    <n-back-top />
   </n-config-provider>
 </template>
 
 <style scoped>
-.side {
-  height: 100vh;
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }
 
 .main {
-  height: 100vh;
+  width: 100%;
+  max-width: 80%;
   text-align: center;
-}
-
-.n-grid {
-  height: 100%;
-}
-
-.n-gi {
-  height: 100%;
-}
-
-.n-space {
-  height: 100%;
-}
-
-.n-alert {
-  text-align: center;
-  margin-bottom: 10px;
 }
 </style>

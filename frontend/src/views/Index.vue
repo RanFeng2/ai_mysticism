@@ -4,7 +4,9 @@ import {
   NInputNumber, NTabs, NTabPane, NDrawer, NDrawerContent,
   NAvatar
 } from 'naive-ui'
-import { watch, ref, onMounted } from "vue";
+import { watch, ref, onMounted, onBeforeUnmount, computed} from "vue";
+import { useRouter } from 'vue-router'
+import { useStore } from 'vuex';
 import MarkdownIt from 'markdown-it';
 import { fetchEventSource, EventStreamContentType } from '@microsoft/fetch-event-source';
 import { useStorage } from '@vueuse/core';
@@ -12,10 +14,9 @@ import { Solar } from 'lunar-javascript'
 
 import { useIsMobile } from '../utils/composables'
 import About from '../components/About.vue'
-
 import { DIVINATION_OPTIONS } from "../config/constants";
 const isMobile = useIsMobile()
-const state_jwt = useStorage('jwt')
+// const state_jwt = useStorage('jwt')
 const prompt = ref("");
 const conversations = ref([]);  // 使用一个数组来存储所有对话
 const tmp_result = ref("");
@@ -24,7 +25,11 @@ const menu_type = useStorage("menu_type", "divination");
 const lunarBirthday = ref("");
 const birthday = useStorage("birthday", "2000-08-17 00:00:00");
 const loading = ref(false);
+
+import { VITE_API_BASE }from "../config/env.js"
 const API_BASE = import.meta.env.VITE_API_BASE || "";
+console.log("API_BASE=", API_BASE);
+
 const md = new MarkdownIt();
 const sex = ref("")
 const surname = ref("")
@@ -38,12 +43,13 @@ const fate_body = useStorage("fate_body", { name1: "", name2: "" })
 
 console.log("Script loaded");  // 确保脚本加载成功
 
+const store = useStore();
+const user = computed(() => store.state.user);  // 使用computed创建响应式的用户状态
+const isAuthenticated = computed(() => store.state.isAuthenticated)
 
 const onSubmit = async () => {
-  if (loading.value) return;  // 防止重复提交
-  console.log("Submit clicked");  // 确保点击事件触发
   try {
-    loading.value = true;
+    // loading.value = true;
     console.log("Loading set to true"); // 确保按钮加载状态正确设置
     tmp_result.value = "";
     const userPrompt = prompt.value;
@@ -64,7 +70,6 @@ const onSubmit = async () => {
         fate: prompt_type.value == "fate" ? fate_body.value : null
       }),
       headers: {
-        "Authorization": `Bearer ${state_jwt.value || "xxx"}`,
         "Content-Type": "application/json"
       },
       async onopen(response) {
@@ -94,7 +99,8 @@ const onSubmit = async () => {
             prompt: userPrompt,
             response: final_result
           });
-          console.log("final_result:", final_result);
+          console.log("final_result:", final_result)
+
         } catch (error) {
           console.error("Error rendering final result:", error);
           conversations.value.push({
@@ -103,7 +109,7 @@ const onSubmit = async () => {
           });
         }
         console.log("Connection closed");
-        loading.value = false;
+        // loading.value = false;
       },
       onerror(err) {
         console.log("Error occurred:", err.message);
@@ -113,7 +119,7 @@ const onSubmit = async () => {
             response: `占卜失败: ${err.message}`
           });
         }
-        loading.value = false;
+        // loading.value = false;
       }
     });
   } catch (error) {
@@ -124,7 +130,7 @@ const onSubmit = async () => {
         response: error.message || "占卜失败"
       });
     }
-    loading.value = false;
+    // loading.value = false;
   }
 };
 
@@ -139,6 +145,24 @@ const computeLunarBirthday = (newBirthday) => {
     console.error(error)
     lunarBirthday.value = '转换失败'
   }
+}
+
+const changeTab = async (delta) => {
+  // 清空prompt
+  prompt.value = "";
+  // 清空对话记录
+  conversations.value = [];
+  // 更新当前的Index
+  let curIndex = DIVINATION_OPTIONS.findIndex((option) => option.key === prompt_type.value);
+  let newIndex = curIndex + delta;
+  if (newIndex < 0) {
+    newIndex = DIVINATION_OPTIONS.length - 1;
+  } else if (newIndex >= DIVINATION_OPTIONS.length) {
+    newIndex = 0;
+  }
+  // console.log("curIndex=", curIndex)
+  prompt_type.value = DIVINATION_OPTIONS[curIndex].key;
+  console.log("prompt_type.value=", prompt_type.value)
 }
 
 const updateBirthdayPrompt = (newBirthday) => {
@@ -175,30 +199,6 @@ watch([prompt_type, birthday, surname, sex, new_name_prompt, plum_flower], ([new
 
 }, { deep: true })
 
-
-
-const changeTab = async (delta) => {
-  // 清空prompt
-  prompt.value = "";
-  // 清空对话记录
-  conversations.value = [];
-  // 更新当前的Index
-  let curIndex = DIVINATION_OPTIONS.findIndex((option) => option.key === prompt_type.value);
-  let newIndex = curIndex + delta;
-  if (newIndex < 0) {
-    newIndex = DIVINATION_OPTIONS.length - 1;
-  } else if (newIndex >= DIVINATION_OPTIONS.length) {
-    newIndex = 0;
-  }
-  // console.log("curIndex=", curIndex)
-  prompt_type.value = DIVINATION_OPTIONS[curIndex].key;
-  console.log("prompt_type.value=", prompt_type.value)
-}
-
-onMounted(async () => {
-  computeLunarBirthday(birthday.value)
-
-});
 </script>
 
 
@@ -390,6 +390,8 @@ onMounted(async () => {
     </n-tabs>
   </div>
 </template>
+
+
 
 
 <style scoped>

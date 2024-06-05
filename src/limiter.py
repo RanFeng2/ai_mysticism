@@ -8,6 +8,9 @@ _logger = logging.getLogger(__name__)
 request_limit_map = defaultdict(list)
 
 
+from passlib.context import CryptContext
+
+
 def get_real_ipaddr(request: Request) -> str:
     if "x-real-ip" in request.headers:
         return request.headers["x-real-ip"]
@@ -39,3 +42,39 @@ def check_rate_limit(key: str, time_window_seconds: int, max_requests: int) -> N
     raise HTTPException(
         status_code=400, detail="Rate limit failed"
     )
+
+
+# 创建密码上下文，指定使用bcrypt算法，自动弃用旧的算法
+# 创建一个密码上下文
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def get_password_hash(password: str) -> str:
+    """
+    对密码进行哈希处理。
+    
+    使用bcrypt算法对传入的密码字符串进行安全的哈希处理，返回哈希后的字符串。
+    这个函数的设计目的是为了安全地存储密码，而不是为了密码的解密。
+    
+    参数:
+    password (str): 需要进行哈希处理的明文密码。
+    
+    返回:
+    str: 经过bcrypt算法哈希处理后的密码字符串。
+    """
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    验证密码是否正确。
+    
+    通过比较明文密码和哈希后的密码，来验证密码的正确性。这个函数的设计目的是为了安全地验证用户输入的密码，
+    而不是为了解密已经哈希的密码。
+    
+    参数:
+    plain_password (str): 用户输入的明文密码。
+    hashed_password (str): 哈希后的密码字符串，用于和用户输入的明文密码进行比较。
+    
+    返回:
+    bool: 如果明文密码和哈希后的密码匹配，则返回True，否则返回False。
+    """
+    return pwd_context.verify(plain_password, hashed_password)

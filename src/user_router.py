@@ -1,76 +1,67 @@
-import jwt
-import requests
-import datetime
-import logging
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+from .models import User
+from .models import UserCreate, UserRead
+from .database import get_db
+from .limiter import get_password_hash, verify_password
 
-from typing import Optional
-
-from fastapi import APIRouter, Depends, HTTPException, status
-
-from src.config import settings
-from src.models import OauthBody, SettingsInfo, User
-from src.user import get_user
-
+# 初始化API路由器
 router = APIRouter()
-_logger = logging.getLogger(__name__)
 
-GITHUB_URL = "https://github.com/login/oauth/authorize?" \
-    f"client_id={settings.github_client_id}" \
-    "&scope=user:email"
-GITHUB_TOEKN_URL = "https://github.com/login/oauth/access_token" \
-    f"?client_id={settings.github_client_id}" \
-    f"&client_secret={settings.github_client_secret}"
-GITHUB_USER_URL = "https://api.github.com/user"
+@router.post("/users/")
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    # print("user", user,"db", db)
+    db_user = db.query(User).filter(User.Username == user.user_name).first()
+    # print("db_user1=", db_user)
 
-
-@router.get("/api/v1/settings", tags=["User"])
-async def info(user: Optional[User] = Depends(get_user)):
-    return SettingsInfo(
-        login_type=user.login_type if user else "",
-        user_name=user.user_name if user else "",
-        ad_client=settings.ad_client,
-        ad_slot=settings.ad_slot,
-        rate_limit=settings.get_human_rate_limit(),
-        user_rate_limit=settings.get_human_user_rate_limit(),
-        enable_login=bool(settings.github_client_id),
-        enable_rate_limit=settings.enable_rate_limit
-    )
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    
+    hashed_password = get_password_hash(user.PasswordHash)
+    db_user = User(Username=user.user_name, Email=user.Email, PasswordHash=hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    # print("db_user2=", db_user)
+    return {"message": "Register successful", "db_user": db_user}
 
 
-@router.get("/api/v1/login", tags=["User"])
-async def login(login_type: str, redirect_url: str):
-    if login_type == "github":
-        return f"{GITHUB_URL}&redirect_uri={redirect_url}"
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        content="Login type not supported"
-    )
+# 定义读取单个用户信息的路由，根据账号密码，使用POST方法
+@router.post("/login/")
+def user_login(user: UserCreate, db: Session = Depends(get_db)):
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db_user = db.query(User).filter(User.Username == user.user_name).first()
+
+    if not verify_password(user.PasswordHash, db_user.PasswordHash):
+        raise HTTPException(status_code=400, detail="Incorrect password")
+
+    # print(db_user)
+    return {"message": "Login successful", "db_user": db_user}
 
 
-@router.post("/api/v1/oauth", tags=["User"])
-async def oauth(oauth_body: OauthBody):
-    if oauth_body.login_type == "github" and oauth_body.code:
-        access_token = requests.post(
-            f"{GITHUB_TOEKN_URL}&code={oauth_body.code}",
-            headers={"Accept": "application/json"}
-        ).json()['access_token']
-        res = requests.get(
-            GITHUB_USER_URL,
-            headers={
-                "Authorization": f"token {access_token}",
-                "Accept": "application/json"
-            }
-        ).json()
-        user_name = res['login']
-        return jwt.encode(
-            User(
-                login_type=oauth_body.login_type,
-                user_name=user_name,
-                expire_at=(
-                    datetime.datetime.now() +
-                    datetime.timedelta(days=30)
-                ).timestamp(),
-            ).dict(),
-            settings.jwt_secret, algorithm="HS256"
-        )
-    raise HTTPException(status_code=400, detail="Login type not supported")
+
+# # 定义读取单个用户信息的路由，根据id，使用GET方法
+# @router.get("/users/{user_id}")
+# # 用户读取函数，接收用户ID和数据库会话作为参数
+# def read_user(user_id: int, db: Session = Depends(get_db)):
+#     """
+#     根据用户ID从数据库中获取用户信息。
+    
+#     参数:
+#     - user_id: 用户的唯一标识符。
+#     - db: 数据库会话，用于执行数据库查询。
+    
+#     返回:
+#     - UserDisplay模型实例，包含用户显示信息。
+    
+#     如果用户不存在，则抛出HTTPException异常，状态码为404，详情为"User not found"。
+#     """
+#     # 根据用户ID查询数据库中的用户信息
+#     db_user = db.query(User).filter(User.id == user_id).first()
+#     # 如果用户不存在，则抛出HTTP异常，提示用户未找到
+#     if db_user is None:
+#         raise HTTPException(status_code=404, detail="User not found")
+#     # 返回查询到的用户信息
+#     return db_user

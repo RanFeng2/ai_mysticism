@@ -8,13 +8,14 @@ import logging
 from fastapi import Depends, HTTPException, Request, status
 
 
-from src.config import settings
+from config import settings
 from fastapi import APIRouter
 
-from src.models import DivinationBody, User
-from src.user import get_user
-from src.limiter import get_real_ipaddr, check_rate_limit
-from src.divination import DivinationFactory
+from .models import DivinationBody, User
+# from src.user import get_user
+from src.user import get_current_user
+from .limiter import get_real_ipaddr, check_rate_limit
+from .divination import DivinationFactory
 
 client = OpenAI(api_key=settings.api_key, base_url=settings.api_base)
 router = APIRouter()
@@ -30,7 +31,9 @@ STOP_WORDS = [
 async def divination(
         request: Request,
         divination_body: DivinationBody,
-        user: Optional[User] = Depends(get_user)
+        # user: Optional[User] = Depends(get_user)
+        user: Optional[User] = Depends(get_current_user)
+
 ):
 
     real_ip = get_real_ipaddr(request)

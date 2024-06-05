@@ -1,8 +1,9 @@
 import logging
 import uvicorn
 
+
 from src.app import app
-from src.config import settings
+from config import settings
 
 logging.basicConfig(
     format="%(asctime)s: %(levelname)s: %(name)s: %(message)s",

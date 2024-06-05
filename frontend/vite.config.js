@@ -50,3 +50,7 @@ export default defineConfig({
     },
   },
 })
+
+
+// console.log("import.meta.env=", import.meta.env);
+// console.log("import.meta.url=", import.meta.url)

@@ -10,11 +10,11 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from src.config import settings
+from config import settings
 from fastapi import APIRouter
 
-from src.models import BirthdayBody, CommonResponse
-from src.limiter import get_real_ipaddr
+from .models import BirthdayBody, CommonResponse
+from .limiter import get_real_ipaddr
 from .divination.birthday import BirthdayFactory
 
 client = OpenAI(api_key="", base_url=settings.api_base)
