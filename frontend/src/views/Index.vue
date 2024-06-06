@@ -8,8 +8,8 @@ import { watch, ref, onMounted, onBeforeUnmount, computed} from "vue";
 import MarkdownIt from 'markdown-it';
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex';
-import { fetchEventSource, EventStreamContentType } from '@microsoft/fetch-event-source';
 import { useStorage } from '@vueuse/core';
+import { fetchEventSource, EventStreamContentType } from '@microsoft/fetch-event-source';
 import { Solar } from 'lunar-javascript'
 import { useIsMobile } from '../utils/composables'
 import About from '../components/About.vue'
@@ -28,7 +28,7 @@ const loading = ref(false);
 
 
 const API_BASE = "";
-console.log("[index.vue]API_BASE",API_BASE)
+// console.log("[index.vue]API_BASE",API_BASE)
 
 const md = new MarkdownIt();
 const sex = ref("")
@@ -52,7 +52,7 @@ console.log("[index.vue]",localStorage.getItem('user'))
 
 const onSubmit = async () => {
   if (loading.value) return;  // 防止重复提交
-  console.log("Submit clicked");  // 确保点击事件触发
+  loading.value = true;
   try {
     console.log("Loading set to true"); // 确保按钮加载状态正确设置
     tmp_result.value = "";
@@ -86,7 +86,7 @@ const onSubmit = async () => {
       },
       onmessage(msg) {
         if (msg.event === 'FatalError') {
-          throw new FatalError(msg.data);
+          throw new Error("Fatal error occurred: " + msg.data);
         }
         if (!msg.data) {
           return;
@@ -114,7 +114,7 @@ const onSubmit = async () => {
           });
         }
         console.log("Connection closed");
-        // loading.value = false;
+        loading.value = false;
       },
       onerror(err) {
         console.log("Error occurred:", err.message);
@@ -124,7 +124,7 @@ const onSubmit = async () => {
             response: `占卜失败: ${err.message}`
           });
         }
-        // loading.value = false;
+        loading.value = false;
       }
     });
   } catch (error) {
@@ -135,7 +135,7 @@ const onSubmit = async () => {
         response: error.message || "占卜失败"
       });
     }
-    // loading.value = false;
+    loading.value = false;
   }
 };
 
