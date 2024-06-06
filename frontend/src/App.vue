@@ -15,9 +15,9 @@ const routerLocal = useRouter()
 const store = useStore();
 const user = computed(() => store.getters.user);  // 使用computed创建响应式的用户状态
 const isAuthenticated = computed(() => store.getters.isAuthenticated)
-console.log("[app.vue-beginning]user=", user)
-console.log("[app.vue-beginning]isAuthenticated=", isAuthenticated)
-console.log("[app.vue]",localStorage.getItem('user'))
+// console.log("[app.vue-beginning]user=", user)
+// console.log("[app.vue-beginning]isAuthenticated=", isAuthenticated)
+// console.log("[app.vue]",localStorage.getItem('user'))
 
 const themeStorage = useStorage('theme', 'light')
 const theme = computed(() => themeStorage.value == 'dark' ? darkTheme : null)
@@ -30,12 +30,7 @@ function logIn() {
 
 // 登出
 function logOut() {
-  isAuthenticated.value = false;
-  user.value = null;
-  store.commit(
-    'setUser', 
-     null,
-  );
+  store.commit('logout');
   routerLocal.push('/');
 }
 
@@ -52,6 +47,7 @@ function toHomePage(){
     <n-message-provider>
       <div class="container">
         <div class="main">
+          <!-- 页头 -->
           <n-page-header :subtitle="''">
             <template #title>
               <h3>AI 神秘学</h3>
@@ -67,7 +63,7 @@ function toHomePage(){
                 <n-button type="primary" ghost @click="toHomePage">
                   🏠主页
                 </n-button>
-                <n-button v-if="isAuthenticated" @click="router.push('\login')">{{ user.Username }}</n-button>
+                <n-button v-if="isAuthenticated" @click="router.push('\login')">个人主页</n-button>
                 <n-button v-if="isAuthenticated" @click="logOut">登出</n-button>
                 <n-button v-if="!isAuthenticated" type="primary" @click="logIn">登录</n-button>
               </n-space>
@@ -81,6 +77,10 @@ function toHomePage(){
               </n-alert>
             </template>
           </n-page-header>
+
+          <!-- 添加空白 -->
+          <div style="height: 20px;"></div>
+
           <router-view :key="$route.path"></router-view>
         </div>
       </div>

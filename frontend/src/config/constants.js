@@ -34,6 +34,11 @@ export const DIVINATION_OPTIONS = [
         key: 'fate',
         welcome_messages: "欢迎探索婚姻的奥秘与和谐。我是婚姻配对大师，请提供男女双方的姓名，开启我们共同探索两人缘分的起点。",
     },
+    {
+        label: '占卜示例',
+        key: 'example',
+        welcome_messages: "一些占卜示例",
+    },
 ];
 
 export const ABOUT = `# 关于 & 名词解释

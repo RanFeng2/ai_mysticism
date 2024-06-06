@@ -10,6 +10,7 @@ from .limiter import get_real_ipaddr
 from .chatgpt_router import router as chatgpt_router
 from .divination_router import router as divination_router
 from .user_router import router as user_router
+from .divination_save_router import router as divination_save_router
 
 # 初始化日志模块，用于记录程序运行中的信息
 _logger = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ app.add_middleware(
 app.include_router(chatgpt_router)
 app.include_router(divination_router)
 app.include_router(user_router)
+app.include_router(divination_save_router)
 
 # 如果dist目录存在，说明有前端构建产物，配置静态文件服务
 if os.path.exists("dist"):

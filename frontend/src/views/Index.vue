@@ -14,6 +14,7 @@ import { Solar } from 'lunar-javascript'
 import { useIsMobile } from '../utils/composables'
 import About from '../components/About.vue'
 import { DIVINATION_OPTIONS } from "../config/constants";
+import { divinationExampleData } from "../config/examples"
 
 const isMobile = useIsMobile()
 const state_jwt = useStorage('jwt')
@@ -21,6 +22,7 @@ const prompt = ref("");
 const conversations = ref([]);  // 使用一个数组来存储所有对话
 const tmp_result = ref("");
 const prompt_type = useStorage("prompt_type", "tarot");
+const pre_prompt_type = ref("tarot")
 const menu_type = useStorage("menu_type", "divination");
 const lunarBirthday = ref("");
 const birthday = useStorage("birthday", "2000-08-17 00:00:00");
@@ -31,6 +33,12 @@ const API_BASE = "";
 // console.log("[index.vue]API_BASE",API_BASE)
 
 const md = new MarkdownIt();
+const parseMarkdown = (text) => {
+    const md = new MarkdownIt();
+    return md.render(text);
+};
+
+
 const sex = ref("")
 const surname = ref("")
 const new_name_prompt = ref("")
@@ -46,9 +54,11 @@ console.log("Script loaded");  // 确保脚本加载成功
 const store = useStore();
 const user = computed(() => store.getters.user);  // 使用computed创建响应式的用户状态
 const isAuthenticated = computed(() => store.getters.isAuthenticated)
-console.log("[index.vue-beginning]user=", user)
-console.log("[index.vue-beginning]isAuthenticated=", isAuthenticated)
-console.log("[index.vue]",localStorage.getItem('user'))
+// console.log("[index.vue-beginning]user=", user)
+// console.log("[index.vue-beginning]isAuthenticated=", isAuthenticated)
+// console.log("[index.vue]",localStorage.getItem('user'))
+
+const dialogue = divinationExampleData.dialogue
 
 const onSubmit = async () => {
   if (loading.value) return;  // 防止重复提交
@@ -106,6 +116,7 @@ const onSubmit = async () => {
           });
           console.log("final_result:", final_result)
 
+
         } catch (error) {
           console.error("Error rendering final result:", error);
           conversations.value.push({
@@ -139,6 +150,52 @@ const onSubmit = async () => {
   }
 };
 
+// 异步函数saveOneQuery用于记录问答
+async function saveOneQuery(userid, prompt_type, conversations) {
+  if (isAuthenticated.value && conversations.value.length > 0){
+      // 定义注册接口URL
+      const saveUrl = 'http://localhost:8000/save/';
+      // 构建用户数据对象，包含用户名、密码和邮箱
+      let prompts = conversations.value.map(conversation => conversation.prompt);     
+      let responses = conversations.value.map(conversation => conversation.response);
+      const question = prompts.join("#")
+      const result = responses.join("#")
+      // console.log("[index.js]question=",question)
+      // console.log("[index.js]result=",result)
+      // console.log("[index.js]userid=",userid)
+      // console.log("[index.js]prompt_type=",prompt_type.value)
+      const queryData = {
+        UserId: userid,
+        Question: question,
+        Result: result,
+        DivinationType: pre_prompt_type.value
+      };
+      try {
+        // 发起POST请求，记录本次问答
+        const response = await fetch(saveUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(queryData),
+        });
+
+        // 如果响应状态不为200，抛出错误
+        if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+        }
+
+        // 解析响应的JSON数据
+        const data = await response.json();
+        // 打印注册成功信息，并存储用户信息到本地存储
+        console.log('query saved!', data);
+
+      } catch (error) {
+        // 捕获注册过程中的任何错误并打印
+        console.error('Registration failed:', error);
+      }
+    }
+  }
+
+
 const computeLunarBirthday = (newBirthday) => {
   try {
     let date = new Date(newBirthday)
@@ -153,6 +210,11 @@ const computeLunarBirthday = (newBirthday) => {
 }
 
 const changeTab = async (delta) => {
+  // console.log("pre_prompt_type=", pre_prompt_type.value)
+  // 保存对话记录至云服务器
+  if(isAuthenticated.value){
+    saveOneQuery(user.value.UserId, pre_prompt_type, conversations)
+  }
   // 清空prompt
   prompt.value = "";
   // 清空对话记录
@@ -167,7 +229,8 @@ const changeTab = async (delta) => {
   }
   // console.log("curIndex=", curIndex)
   prompt_type.value = DIVINATION_OPTIONS[curIndex].key;
-  console.log("prompt_type.value=", prompt_type.value)
+  // console.log("prompt_type.value=", prompt_type.value)
+  pre_prompt_type.value = prompt_type.value; // 使用 .value 更新 ref 的值
 }
 
 const updateBirthdayPrompt = (newBirthday) => {
@@ -198,7 +261,7 @@ watch([prompt_type, birthday, surname, sex, new_name_prompt, plum_flower], ([new
   }
 
   if (newPromptType == 'plum_flower'){
-    console.log('Checking Plum Flower:', newPlumFlower, oldPlumFlower);
+    // console.log('Checking Plum Flower:', newPlumFlower, oldPlumFlower);
     updatePlumFlowerPrompt(newPlumFlower.num1, newPlumFlower.num2)
   }
 
@@ -362,6 +425,39 @@ watch([prompt_type, birthday, surname, sex, new_name_prompt, plum_flower], ([new
                 </n-form-item>
               </div>
             </div>
+            <!-- 占卜示例 -->
+            <div v-if="prompt_type == 'example'">
+              <h1>占卜示例1：生辰八字占卜</h1>
+              <div v-for="(item, index) in dialogue" :key="index" class="conversation">
+                <div v-if="item.role === '用户'">
+                  <!-- 用户头像 -->
+                  <div class="conversation-item user">
+                    <n-avatar round :size="large" object-fit="contain" 
+                      src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg" />
+                    <p><strong>{{ item.role }}</strong></p>
+                  </div>
+                  <!-- 用户内容 -->
+                  <div class="conversation-content user">
+                    <div class="message-content" v-html="parseMarkdown(item.content)"></div>
+                  </div>
+                </div>
+                <div v-else>
+                <!-- AI头像 -->
+                  <div class="conversation-item ai">
+                    <n-avatar round :size="large" object-fit="contain"
+                      src="tarot-200x200.jpg" />
+                    <p><strong>{{ item.role }}</strong></p>
+                </div>
+                <!-- AI内容 -->
+                  <div class="conversation-content ai">
+                    <div class="message-content" v-html="parseMarkdown(item.content)"></div>
+                </div>
+              </div>   
+            </div>
+            </div>
+
+            
+
             <!-- 对话显示区域 -->
             <div v-for="(conversation, index) in conversations" :key="index" class="conversation">
               <div class="conversation-item user">
@@ -383,13 +479,17 @@ watch([prompt_type, birthday, surname, sex, new_name_prompt, plum_flower], ([new
             </div>
           </div>
           <!-- 输入和操作区域 -->
-          <div class="input-container" style="display: flex; align-items: center;">
+          <div class="input-container" v-if="prompt_type!='example'"  style="display: flex; align-items: center;">
             <n-input v-model:value="prompt" type="textarea" round maxlength="40" :autosize="{ minRows: 3 }"
               placeholder="请根据提示输入" style="flex-grow: 1; margin-right: 8px;" />
-            <n-button class="button" @click="onSubmit" type="primary" :disabled="loading">
+            <n-button class="button" @click="onSubmit" size="large" type="primary" :disabled="loading">
               {{ loading ? "正在发送..." : "发送" }}
             </n-button>
           </div>
+        <!-- 右上角的保存按钮 -->
+        <div style="position: absolute; top: 10px; right: 10px;" v-if="isAuthenticated & prompt_type!='example'">
+            <n-button @click="saveOneQuery" strong type="info" size="large">保存对话</n-button>
+        </div>
         </n-card>
       </n-tab-pane>
     </n-tabs>
@@ -406,7 +506,7 @@ watch([prompt_type, birthday, surname, sex, new_name_prompt, plum_flower], ([new
 }
 
 .button {
-  margin: 10px;
+  margin: 20px;
 }
 
 .input-container {
@@ -453,8 +553,10 @@ watch([prompt_type, birthday, surname, sex, new_name_prompt, plum_flower], ([new
   flex-direction: row;
   margin-left: 20px;
   margin-right: 10%;
-  background-color: #211100;
-  color: white;
+  /* background-color: #211100; */
+  /* background-color: #E7F8FF; */
+  background-color: #DAF0E4;
+  color: black;
   padding: 10px;
   border-radius: 5px;
 }
@@ -463,7 +565,8 @@ watch([prompt_type, birthday, surname, sex, new_name_prompt, plum_flower], ([new
   flex-direction: row-reverse;
   margin-right: 20px;
   margin-left: 60%;
-  background-color: #f0f0f0;
+  /* background-color: #f0f0f0; */
+  background-color: #F2F2F2;
   color: #333;
   padding: 10px;
   border-radius: 5px;
@@ -496,7 +599,6 @@ watch([prompt_type, birthday, surname, sex, new_name_prompt, plum_flower], ([new
   display: flex;
   align-items: center;
 }
-
 
 
 

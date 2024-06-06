@@ -4,6 +4,8 @@ from .models import User
 from .models import UserCreate, UserRead
 from .database import get_db
 from .limiter import get_password_hash, verify_password
+from datetime import datetime
+
 
 # 初始化API路由器
 router = APIRouter()
@@ -18,7 +20,8 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Username already registered")
     
     hashed_password = get_password_hash(user.PasswordHash)
-    db_user = User(Username=user.user_name, Email=user.Email, PasswordHash=hashed_password)
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 转换为字符串
+    db_user = User(Username=user.user_name, Email=user.Email, PasswordHash=hashed_password, CreateDate=current_time)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

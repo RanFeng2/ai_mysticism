@@ -27,11 +27,18 @@ const store = createStore({
       commit('setUser', user);
     }
   },
-  getters: {//计算属性
+  getters: {
     // 获取当前user状态
-    user: (state) => state.user,
-    isAuthenticated: (state) => state.isAuthenticated
-  }
+    user: (state) => {
+      if (state.user) {
+        return JSON.parse(state.user); // 解析存储的JSON字符串
+      } else {
+        return null;
+      }
+    },
+    isAuthenticated: (state) => state.isAuthenticated,
+  }, // 添加逗号以修复语法错误
+
 });
 
 export default store;

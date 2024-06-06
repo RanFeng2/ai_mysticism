@@ -1,5 +1,6 @@
 <template>
   <div class="container" v-if="!isAuthenticated">
+    <!-- 注册界面 -->
     <div class="register">
       <h1>Register Now!</h1>
       <input v-model="username" placeholder="Enter username">
@@ -7,6 +8,7 @@
       <input v-model="email" placeholder="Enter email">
       <button @click="registerUser">Register</button>
     </div>
+    <!-- 登录界面 -->
     <div class="login">
       <h1>Login</h1>
       <input v-model="loginUsername" placeholder="Enter username">
@@ -15,9 +17,20 @@
       <button v-if="isAuthenticated" @click="logoutUser">Logout</button>
     </div>
   </div>
+  <!-- 过去的占卜展示 -->
   <div v-else>
     <h1>Welcome, {{ user.Username }}!</h1>
-  </div>
+    <div class="card-container">
+      <div v-for="(divination, index) in all_result" :key="index" class="card">
+        <h2>占卜{{index}}</h2>
+        <p><strong>占卜日期：</strong>{{ divination.DivinationDate }}</p>
+        <p><strong>占卜类型：</strong>{{ divination.DivinationType }}</p>
+        <p><strong>问题：</strong>{{ divination.Question }}</p>
+        <div v-html="divination.Result"></div>
+      </div>
+    </div>
+</div>
+
 </template>
 
 <script setup>
@@ -32,11 +45,13 @@ import { useStore } from 'vuex';
     const loginPassword = ref('');
 
     const store = useStore();
-    const user = computed(() => store.getters.user);  // 使用computed创建响应式的用户状态
+    const user = computed(() => store.getters.user);  
     const isAuthenticated = computed(() => store.getters.isAuthenticated)
-    console.log("[login.vue-beginning]user=", user)
-    console.log("[login.vue-beginning]isAuthenticated=", isAuthenticated)
-    console.log("[login.vue]",localStorage.getItem('user'))
+    // console.log("[login.vue-beginning]user=", user)
+    // console.log("[login.vue-beginning]isAuthenticated=", isAuthenticated)
+    // console.log("[login.vue]",localStorage.getItem('user'))
+
+    const all_result = ref([])
 
     // 异步函数loginUser用于处理用户登录逻辑
     // 登录，查询数据库
@@ -66,15 +81,11 @@ import { useStore } from 'vuex';
         // 保存到vuex
         const data = await response.json()
         const data_json_stringify = JSON.stringify(data.db_user)
-        const data_json_parse = JSON.parse(data_json_stringify)
-        // console.log("data_json_parse=", data_json_parse)
-        store.commit('setUser', data_json_parse)
-
-        isAuthenticated.value = true;
+        store.commit('setUser', data_json_stringify)
 
         // 在控制台打印
-        console.log("[login.vue]localStorage.getItem('user')=", computed(() => store.getters.user))
-        console.log("[login.vue]isAuthenticated.value=", computed(() => store.getters.isAuthenticated))
+        // console.log("[login.vue]localStorage.getItem('user')=", computed(() => store.getters.user))
+        // console.log("[login.vue]isAuthenticated.value=", computed(() => store.getters.isAuthenticated))
       } catch (error) {
         // 在控制台打印登录失败的错误信息
         console.error('[login]Login failed:', error);
@@ -107,12 +118,12 @@ import { useStore } from 'vuex';
           throw new Error('Network response was not ok ' + response.statusText);
         }
 
-        // 解析响应的JSON数据
+        // 解析响应的JSON数据，打印注册成功信息，并存储用户信息到本地存储
         const data = await response.json();
-        // 打印注册成功信息，并存储用户信息到本地存储
         console.log('User registered', data);
-        user.value = data.db_user;
-        localStorage.setItem('user', JSON.stringify(user.value));
+        // user.value = data.db_user;                                 //已经通过mutation修改了状态
+        // localStorage.setItem('user', JSON.stringify(user.value));  //已经通过mutation修改了状态
+        store.commit('setUser', JSON.stringify(data.db_user))
 
       } catch (error) {
         // 捕获注册过程中的任何错误并打印
@@ -122,19 +133,51 @@ import { useStore } from 'vuex';
 
       // 退出登录，清除用户信息
       function logoutUser() {
-        localStorage.removeItem('user');
-        user.value = null;
-        isAuthenticated.value = false;
-        store.commit(JSON.parse(localStorage.getItem('user')));
+        store.commit('logout');
     }
 
-    // // 清理
-    // onBeforeUnmount(() => {
-    //   localStorage.removeItem('user');
-    //   user.value = null;
-    //   isAuthenticated.value = false;
-    // });
 
+    // 异步函数listUserDivination用于用户查询对话
+    async function listUserDivination() {
+      
+      if (isAuthenticated.value){
+        const userid = user.value.UserId
+        // console.log("[login.vue]userid=", userid)
+      
+      // 定义查询接口URL
+      const queryUrl = 'http://localhost:8000/queryall/';
+      // 构建用户数据对象，包含userid
+      const queryData = {
+        UserId: userid,
+      };
+      // 发起POST请求，提交用户id进行注册
+      try {
+        const response = await fetch(queryUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(queryData),
+        });
+        // 如果响应状态不为200，抛出错误
+        if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+        }
+        // 解析响应的JSON数据
+        const data = await response.json();
+        // 打印查询成功信息，并存储查询信息到本地存储
+        console.log('Query success!!!', data);
+
+        all_result.value = data.db_Divination
+
+      } catch (error) {
+        // 捕获查询过程中的任何错误并打印
+        console.error('Query failed:', error);
+      }
+    }
+    }
+
+    onMounted(() => {
+      listUserDivination()
+    })
   
 </script>
 
@@ -149,5 +192,26 @@ import { useStore } from 'vuex';
   padding: 20px;
   box-sizing: border-box;
 }
+
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.card {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 15px;
+  width: 300px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+}
+
+.card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+
 </style>
 

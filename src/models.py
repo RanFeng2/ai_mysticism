@@ -4,7 +4,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy import Sequence, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
-
+############################################################
+# user
+############################################################
 Base = declarative_base()
 class User(Base):
     __tablename__ = 'User'
@@ -13,8 +15,6 @@ class User(Base):
     Email = Column(String(100), unique=True, index=True)
     PasswordHash = Column(String(100))
     CreateDate = Column(DateTime)
-
-# schemas.py
 
 class UserCreate(BaseModel):
     user_name: str
@@ -28,9 +28,32 @@ class UserRead(BaseModel):
 
     class Config:
         orm_mode = True
-        from_attributes = True  # 用于 Pydantic v2
+        from_attributes = True 
+
+############################################################
+# query
+############################################################
+class Divination(Base):
+    __tablename__ = 'DivinationResult'
+    ResultId = Column(Integer, Sequence('result_id_seq'), primary_key=True)
+    UserId = Column(Integer)
+    Question = Column(String(500))
+    Result = Column(String(500))
+    DivinationType = Column(String(500))
+    DivinationDate	= Column(DateTime)
+
+class DivinationCreate(BaseModel):
+    UserId: int
+    Question: str
+    Result: str
+    DivinationType: str
+
+class DivinationRead(BaseModel):
+    UserId: int
+    
 
 
+############################################################
 
 class SettingsInfo(BaseModel):
     login_type: str
