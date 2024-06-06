@@ -27,13 +27,13 @@ docker-compose up --build
 
 ```bash
 # 后端变量
-api_key=sk-VlTl0lAMBjn6emwg93D58c210cBc441a8fC03bB8D96bEd12
-api_base=https://api.xiaoai.plus/v1
+api_key=xxx
+api_base=xxx
 github_client_id=xxx
 github_client_secret=xxx
 ad_client=ca-pub-xxx
 ad_slot=123
-database_url = mysql+pymysql://ai-mysticism:irCCY7ZZY4zrNyz8@8.130.32.234:3306/ai-mysticism  # 云数据库连接
+database_url = xxxx  # 云数据库连接
 ```
 
 ```bash
