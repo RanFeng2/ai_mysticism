@@ -1,11 +1,15 @@
 # src/database.py
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import sys
+import os
+sys.path.append('D:/ai-mysticism')
+print(sys.path)
 
-# from config import settings
+from config import settings
 
-# DATABASE_URL = settings.database_url
-DATABASE_URL = "mysql+pymysql://ai-mysticism:irCCY7ZZY4zrNyz8@8.130.32.234:3306/ai-mysticism"
+DATABASE_URL = settings.database_url
+print(DATABASE_URL)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

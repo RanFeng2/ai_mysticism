@@ -2,11 +2,11 @@ import pymysql
 
 try:
     conn = pymysql.connect(
-        host='8.130.32.234',
-        port=3306,
-        user='ai-mysticism',  # 更正用户名
-        password='irCCY7ZZY4zrNyz8',
-        database='ai-mysticism'
+        host='xxxx',            # 数据库地址
+        port=xxxx,              # 端口
+        user='xxxxx',           # 用户名
+        password='xxxx',        # 密码
+        database='xxxxx'        # 数据库名
     )
     print("连接成功！")
 except Exception as e:
