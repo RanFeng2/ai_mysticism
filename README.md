@@ -19,7 +19,7 @@
 
 ## Deploy by docker
 
-根目录新建一个`docer-compose.yml`文件
+根目录新建一个`docker-compose.yml`文件
 ```yaml
 version: '3.11'
 
@@ -87,17 +87,17 @@ npm run dev
 
 ## 效果展示
 <img src="frontend\public\index_without_login.png" alt="主页（未登录）" title="主页（未登录）">
-*主页（未登录）*
+<center>主页（未登录）</center>
 <img src="frontend\public\index_conversation_without_login.png" alt="主页对话（未登录）" title="主页对话（未登录）">
-*主页对话（未登录）*
+<center>主页对话（未登录）</center>
 <img src="frontend\public\login.png" alt="登录/注册页" title="登录/注册页">
-*登录/注册页*
+<center>登录/注册页</center>
 <img src="frontend\public\login_after.png" alt="登录后的个人主页" title="登陆后的个人主页">
-*登录后的个人主页*
+<center>登录后的个人主页</center>
 <img src="frontend\public\index_login.png" alt="主页（已登录）" title="主页（已登录）">
-*主页（已登录）*
-<img src="frontend\public\dark_mode.png" alt="暗亮色切换" title="暗亮色切换"> 
-*暗亮色切换*
+<center>主页（已登录）</center>
+<img src="frontend\public\dark_mode.png" alt="暗亮色切换" title="暗亮色切换">
+<center>暗亮色切换</center>
 
 
 ## Reference
