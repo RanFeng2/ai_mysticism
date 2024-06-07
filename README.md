@@ -86,29 +86,17 @@ npm run dev
 
 
 ## 效果展示
-<!-- <img src="frontend\public\index_without_login.png" alt="主页（未登录）" title="主页（未登录）">
-<img src="frontend\public\index_conversation_without_login.png" alt="主页对话（未登录）" title="主页对话（未登录）">
-<img src="frontend\public\login.png" alt="登录/注册页" title="登录/注册页">
-<img src="frontend\public\login_after.png" alt="登录后的个人主页" title="登陆后的个人主页">
-<img src="frontend\public\index_login.png" alt="主页（已登录）" title="主页（已登录）">
-<img src="frontend\public\dark_mode.png" alt="暗亮色切换" title="暗亮色切换"> -->
-
-![主页（未登录）](frontend\public\index_without_login.png)
+<img src="frontend\public\index_without_login.png" alt="主页（未登录）" title="主页（未登录）">
 *主页（未登录）*
-
-![主页对话（未登录）](frontend\public\index_conversation_without_login.png)
+<img src="frontend\public\index_conversation_without_login.png" alt="主页对话（未登录）" title="主页对话（未登录）">
 *主页对话（未登录）*
-
-![登录/注册页](frontend\public\login.png)
+<img src="frontend\public\login.png" alt="登录/注册页" title="登录/注册页">
 *登录/注册页*
-
-![登录后的个人主页](frontend\public\login_after.png)
+<img src="frontend\public\login_after.png" alt="登录后的个人主页" title="登陆后的个人主页">
 *登录后的个人主页*
-
-![主页（已登录）](frontend\public\index_login.png)
+<img src="frontend\public\index_login.png" alt="主页（已登录）" title="主页（已登录）">
 *主页（已登录）*
-
-![暗亮色切换](frontend\public\dark_mode.png)
+<img src="frontend\public\dark_mode.png" alt="暗亮色切换" title="暗亮色切换"> 
 *暗亮色切换*
 
 
